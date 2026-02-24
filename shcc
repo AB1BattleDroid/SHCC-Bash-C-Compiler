@@ -1,0 +1,38 @@
+#!/bin/bash
+# SHCC bash c compiler 
+src="$1"
+
+if [[ -z "$src" ]]; then
+  echo "Usage: $0 <source.c>"
+  exit 1
+fi
+
+# Expand all macros in the code
+macros=$(bash shcc_macro.sh $src false)
+
+#echo "//macros expanded"
+
+flattened=$(bash shcc_flatten.sh 0 <<< "$macros" )
+echo "//Flattening code"
+
+# Capture the IR from the parser
+tokens="$(bash shcc_tok.sh <(printf "%s\n" "$flattened"))"
+echo "//Tokenizing code"
+
+# Now feed the IR into the assembler and capture the output
+assembly="NULL" # $(bash shcc_asm.sh - | (echo "$tokens")) #to do, make this actually output 
+echo "//Generating assembly"
+
+# Optional: print or save
+echo "=== Expanded Code ==="
+echo "$macros"
+echo "=== Processed Code ==="
+echo "$flattened"
+echo "=== Intermediate Representation ==="
+echo "$tokens"
+echo "=== Assembled Output ==="
+echo "$assembly"
+
+#as <(echo "$assembled") -g -o temp.o
+#ld temp.o -o test
+
